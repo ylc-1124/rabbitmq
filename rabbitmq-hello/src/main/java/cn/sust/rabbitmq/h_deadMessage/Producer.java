@@ -16,14 +16,14 @@ public class Producer {
     public static void main(String[] args) throws Exception{
         Channel channel = RabbitMqUtil.getChannel();
         //设置TTL消息过期时间为10000 ms  = 10s
-        AMQP.BasicProperties props = new AMQP.BasicProperties()
-                .builder().expiration("10000")
-                .build();
+//        AMQP.BasicProperties props = new AMQP.BasicProperties()
+//                .builder().expiration("10000")
+//                .build();
 
         //发送10条消息
         for (int i = 1; i < 11; i++) {
             String message = "info" + i;
-            channel.basicPublish(NORMAL_EXCHANGE,"zhangsan",props,message.getBytes(StandardCharsets.UTF_8));
+            channel.basicPublish(NORMAL_EXCHANGE,"zhangsan",null,message.getBytes(StandardCharsets.UTF_8));
         }
     }
 }

@@ -31,6 +31,8 @@ public class Consumer01 {
         arguments.put("x-dead-letter-exchange", DEAD_EXCHANGE);
         //设置其死信routingKey
         arguments.put("x-dead-letter-routing-key", "lisi");
+        //设置普通队列的最大长度
+        arguments.put("x-max-length", 6);
         channel.queueDeclare(NORMAL_QUEUE, false, false, false, arguments);
 
         //声明死信队列
