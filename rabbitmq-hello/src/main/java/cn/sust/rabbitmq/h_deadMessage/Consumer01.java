@@ -32,7 +32,7 @@ public class Consumer01 {
         //设置其死信routingKey
         arguments.put("x-dead-letter-routing-key", "lisi");
         //设置普通队列的最大长度
-        arguments.put("x-max-length", 6);
+//        arguments.put("x-max-length", 6);
         channel.queueDeclare(NORMAL_QUEUE, false, false, false, arguments);
 
         //声明死信队列
@@ -47,11 +47,23 @@ public class Consumer01 {
 
         //接收到消息的回调
         DeliverCallback deliverCallback=(consumerTag,message)->{
-            System.out.println("消费者01接收到消息:"+new String(message.getBody(),"UTF-8"));
+            String msg = new String(message.getBody(), "UTF-8");
+            if ("info5".equals(msg)) {
+                System.out.println("消费者01接收到消息:" + msg + "==>此消息被拒绝了");
+                //拒绝接收消息，不重新放回普通队列
+                channel.basicReject(message.getEnvelope().getDeliveryTag(), false);
+            } else {
+                System.out.println("消费者01接收到消息:" + msg);
+                //正常应答,不批量应答
+                channel.basicAck(message.getEnvelope().getDeliveryTag(),false);
+            }
+
         };
         //未接收的回调
         CancelCallback cancelCallback=consumerTag->{};
-        channel.basicConsume(NORMAL_QUEUE, true, deliverCallback, cancelCallback);
+
+        //切换成手动应答
+        channel.basicConsume(NORMAL_QUEUE, false, deliverCallback, cancelCallback);
     }
 
 }
