@@ -23,6 +23,8 @@ public class TtlQueenConfig {
     //普通队列
     public static final String QUEUE_A = "QA";
     public static final String QUEUE_B = "QB";
+    //通用延迟队列
+    public static final String QUEUE_C = "QC";
     //死信队列
     public static final String DEAD_LETTER_QUEUE = "QD";
 
@@ -67,6 +69,16 @@ public class TtlQueenConfig {
         arguments.put("x-message-ttl", 40000);
         return QueueBuilder.durable(QUEUE_B).withArguments(arguments).build();
     }
+    //声明 QC
+    @Bean("queueC")
+    public Queue queueC() {
+        Map<String, Object> arguments = new HashMap<>();
+        //1.设置死信交换机
+        arguments.put("x-dead-letter-exchange", Y_DEAD_LETTER_EXCHANGE);
+        //2.设置死信routingKey
+        arguments.put("x-dead-letter-routing-key", "YD");
+        return QueueBuilder.durable(QUEUE_C).withArguments(arguments).build();
+    }
 
     //声明死信队列
     @Bean("queueD")
@@ -89,6 +101,12 @@ public class TtlQueenConfig {
     public Binding queueBBindingX(@Qualifier("queueB") Queue queueB,
                                   @Qualifier("xExchange") DirectExchange xExchange) {
         return BindingBuilder.bind(queueB).to(xExchange).with("XB");
+    }
+    //绑定队列 QC和普通交换机 xExchange
+    @Bean
+    public Binding queueCBindingX(@Qualifier("queueC") Queue queueC,
+                                  @Qualifier("xExchange") DirectExchange xExchange) {
+        return BindingBuilder.bind(queueC).to(xExchange).with("XC");
     }
 
     //绑定死信队列 QD和死信交换机 yExchange
