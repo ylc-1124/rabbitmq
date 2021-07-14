@@ -1,14 +1,18 @@
 package cn.sust.rabbitmq.a;
 
+import com.rabbitmq.client.AMQP;
 import com.rabbitmq.client.Channel;
 import com.rabbitmq.client.Connection;
 import com.rabbitmq.client.ConnectionFactory;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeoutException;
 
 /**
- * 生产者:发送消息
+ * 原来只是一个普通生产者:发送消息
+ * 在学习过程中修改成了测试优先级队列
  */
 public class Producer {
     //队列名称
@@ -36,9 +40,23 @@ public class Producer {
          * 4.是否自动删除
          * 5.其他参数
          */
-        channel.queueDeclare(QUEEN_NAME, false, false, false, null);
-        //发消息
-        String message = "hello world";
+        Map<String, Object> arguments = new HashMap<>();
+        arguments.put("x-max-priority", 10);  //官方允许0-255 此处设置为 10 不要设置过大 浪费cpu性能和内存
+        channel.queueDeclare(QUEEN_NAME, true,
+                false, false, arguments);
+        for (int i = 1; i < 11; i++) {
+            String message = "info" + i;  //发送的消息内容
+            //发送到第 5条消息时 将其优先级设置为 5 其他消息正常发布 不加优先级
+            if (i == 5) {
+                AMQP.BasicProperties props = new AMQP.BasicProperties()
+                        .builder().priority(5).build();
+                channel.basicPublish("", QUEEN_NAME, props, message.getBytes());
+            } else {
+                channel.basicPublish("", QUEEN_NAME, null, message.getBytes());
+
+            }
+        }
+        System.out.println("消息发送完毕");
         /**
          * 发送一个消息
          * 1.发送到哪个交换机
@@ -46,7 +64,6 @@ public class Producer {
          * 3.其他参数
          * 4.发送消息的消息体
          */
-        channel.basicPublish("", QUEEN_NAME, null, message.getBytes());
-        System.out.println("消息发送完毕");
+
     }
 }
